@@ -176,3 +176,90 @@ def overlay_heatmap(image, heatmap, alpha=0.5):
 
     overlay = np.clip((1 - alpha) * np.array(image) + alpha * heatmap, 0, 255).astype(np.uint8)
     return Image.fromarray(overlay)
+
+
+
+def get_param_groups_step_decay(model, base_lr=0.001, step_size=3, decay_factor=0.5):
+
+    param_groups = []
+    layers = list(model.features.children())  # 获取特征提取层
+    num_layers = len(layers)
+
+    # 从后往前设置学习率，确保越靠后的层学习率越高
+    for i, layer in enumerate(reversed(layers)):
+        group_lr = base_lr * (decay_factor ** (i // step_size))
+        param_groups.append({
+            'params': layer.parameters(),
+            'lr': group_lr
+        })
+    param_groups.reverse()
+    # 最后一层分类器的学习率
+    param_groups.append({
+        'params': model.classifier.parameters(),
+        'lr': base_lr  # 分类器使用基础学习率
+    })
+
+    # 由于特征层按逆序添加，需要重新调整顺序
+    
+
+    return param_groups
+
+
+
+def train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=10):
+    for epoch in range(num_epochs):
+        # 训练模式
+        model.train()
+        running_loss = 0.0
+        correct = 0
+        total = 0
+
+        for inputs, labels in train_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            
+            # 前向传播
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            
+            # 反向传播和优化
+            loss.backward()
+            optimizer.step()
+            
+            # 统计
+            running_loss += loss.item() * inputs.size(0)
+            _, preds = torch.max(outputs, 1)
+            correct += torch.sum(preds == labels).item()
+            total += labels.size(0)
+
+        epoch_loss = running_loss / len(train_loader.dataset)
+        epoch_acc = correct / total
+        print(f"Epoch {epoch+1}/{num_epochs}, Train Loss: {epoch_loss:.4f}, Train Acc: {epoch_acc:.4f}")
+        
+        # 验证模式
+        model.eval()
+        val_loss = 0.0
+        val_correct = 0
+        val_total = 0
+
+        with torch.no_grad():
+            for inputs, labels in val_loader:
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
+                
+                val_loss += loss.item() * inputs.size(0)
+                _, preds = torch.max(outputs, 1)
+                val_correct += torch.sum(preds == labels).item()
+                val_total += labels.size(0)
+        
+        val_loss /= len(val_loader.dataset)
+        val_acc = val_correct / val_total
+        print(f"Validation Loss: {val_loss:.4f}, Validation Acc: {val_acc:.4f}")
+
+# 统计需要训练的参数量
+def count_trainable_parameters(model):
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    return trainable_params
+
+
