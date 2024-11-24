@@ -259,7 +259,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, save_path
         val_acc = val_correct / val_total
         print(f"Validation Loss: {val_loss:.4f}, Validation Acc: {val_acc:.4f}")
 
-        if val_loss < best_val_loss:
+        if val_acc > best_val_acc:
             best_val_acc = val_acc
             best_val_loss = val_loss
             torch.save(model.state_dict(), save_path)
