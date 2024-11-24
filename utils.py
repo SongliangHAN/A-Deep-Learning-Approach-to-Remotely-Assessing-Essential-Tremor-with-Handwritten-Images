@@ -206,7 +206,9 @@ def get_param_groups_step_decay(model, base_lr=0.001, step_size=3, decay_factor=
 
 
 
-def train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=10):
+def train_model(model, train_loader, val_loader, criterion, optimizer, save_path, num_epochs=10):
+    best_val_loss = float('inf')
+    best_val_acc = 0.0  
     for epoch in range(num_epochs):
         # 训练模式
         model.train()
@@ -256,6 +258,14 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, num_epoch
         val_loss /= len(val_loader.dataset)
         val_acc = val_correct / val_total
         print(f"Validation Loss: {val_loss:.4f}, Validation Acc: {val_acc:.4f}")
+
+        if val_loss < best_val_loss:
+            best_val_acc = val_acc
+            best_val_loss = val_loss
+            torch.save(model.state_dict(), save_path)
+            print(f"Best model saved with Validation Acc: {val_acc:.4f}, Validation Loss: {val_loss:.4f}")
+
+    print("Training complete. Best Validation Acc: {:.4f}, Best Validation Loss: {:.4f}".format(best_val_acc, best_val_loss))
 
 # 统计需要训练的参数量
 def count_trainable_parameters(model):

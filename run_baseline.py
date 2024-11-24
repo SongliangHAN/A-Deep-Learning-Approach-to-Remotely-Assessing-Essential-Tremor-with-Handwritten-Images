@@ -111,12 +111,14 @@ step_size = 3
 decay_factor = 0.5
 param_groups = get_param_groups_step_decay(model, base_lr=base_lr, step_size=step_size, decay_factor=decay_factor)
 optimizer = torch.optim.Adam(param_groups)
-
+save_path = 'DenseNet.pth'
 criterion = nn.CrossEntropyLoss()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = model.to(device)
 print('DenseNet')
-train_model(model, train_iterator, valid_iterator, criterion, optimizer, num_epochs=10)
+train_model(model, train_iterator, valid_iterator, criterion, optimizer, save_path, num_epochs=10)
+model.load_state_dict(torch.load(save_path))
+model.eval()
 test_loss, test_acc_1, test_acc_5 = evaluate_baseline(model, test_iterator, criterion, device)
 
 print(f'Test Loss: {test_loss:.3f} | Test Acc @1: {test_acc_1*100:6.2f}% | ' \
@@ -139,12 +141,14 @@ param_groups = get_param_groups_step_decay(model, base_lr=base_lr, step_size=ste
 
 # 定义优化器
 optimizer = torch.optim.Adam(param_groups)
-
+save_path = 'MobileNet.pth'
 # 验证学习率分布
 for i, param_group in enumerate(optimizer.param_groups):
     print(f"Layer Group {i+1}: Learning Rate = {param_group['lr']}")
 print('MobileNet')
-train_model(model, train_iterator, valid_iterator, criterion, optimizer, num_epochs=10)
+train_model(model, train_iterator, valid_iterator, criterion, optimizer, save_path, num_epochs=10)
+model.load_state_dict(torch.load(save_path))
+model.eval()
 test_loss, test_acc_1, test_acc_5 = evaluate_baseline(model, test_iterator, criterion, device)
 print(f"Total trainable mobilenet parameters: {count_trainable_parameters(model):,}")
 print(f'Test Loss: {test_loss:.3f} | Test Acc @1: {test_acc_1*100:6.2f}% | ' \
@@ -161,9 +165,11 @@ model.classifier[2] = nn.Linear(num_features, num_classes)
 param_groups = get_param_groups_step_decay(model, base_lr=0.001, step_size=3, decay_factor=0.5)
 optimizer = torch.optim.Adam(param_groups)
 model = model.to(device)
-
+save_path = 'ConvNext.pth'
 print('ConvNextTiny')
-train_model(model, train_iterator, valid_iterator, criterion, optimizer, num_epochs=10)
+train_model(model, train_iterator, valid_iterator, criterion, optimizer, save_path, num_epochs=10)
+model.load_state_dict(torch.load(save_path))
+model.eval()
 test_loss, test_acc_1, test_acc_5 = evaluate_baseline(model, test_iterator, criterion, device)
 print(f"Total trainable convnext parameters: {count_trainable_parameters(model):,}")
 print(f'Test Loss: {test_loss:.3f} | Test Acc @1: {test_acc_1*100:6.2f}% | ' \
