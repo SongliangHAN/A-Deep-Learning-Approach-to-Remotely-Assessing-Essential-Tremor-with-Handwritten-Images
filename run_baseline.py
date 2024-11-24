@@ -117,7 +117,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = model.to(device)
 print('DenseNet')
 train_model(model, train_iterator, valid_iterator, criterion, optimizer, num_epochs=10)
-test_loss, test_acc_1, test_acc_5 = evaluate(model, test_iterator, criterion, device)
+test_loss, test_acc_1, test_acc_5 = evaluate_baseline(model, test_iterator, criterion, device)
 
 print(f'Test Loss: {test_loss:.3f} | Test Acc @1: {test_acc_1*100:6.2f}% | ' \
       f'Test Acc @5: {test_acc_5*100:6.2f}%')
@@ -145,8 +145,8 @@ for i, param_group in enumerate(optimizer.param_groups):
     print(f"Layer Group {i+1}: Learning Rate = {param_group['lr']}")
 print('MobileNet')
 train_model(model, train_iterator, valid_iterator, criterion, optimizer, num_epochs=10)
-test_loss, test_acc_1, test_acc_5 = evaluate(model, test_iterator, criterion, device)
-
+test_loss, test_acc_1, test_acc_5 = evaluate_baseline(model, test_iterator, criterion, device)
+print(f"Total trainable mobilenet parameters: {count_trainable_parameters(model):,}")
 print(f'Test Loss: {test_loss:.3f} | Test Acc @1: {test_acc_1*100:6.2f}% | ' \
       f'Test Acc @5: {test_acc_5*100:6.2f}%')
 
@@ -164,7 +164,7 @@ model = model.to(device)
 
 print('ConvNextTiny')
 train_model(model, train_iterator, valid_iterator, criterion, optimizer, num_epochs=10)
-test_loss, test_acc_1, test_acc_5 = evaluate(model, test_iterator, criterion, device)
-
+test_loss, test_acc_1, test_acc_5 = evaluate_baseline(model, test_iterator, criterion, device)
+print(f"Total trainable convnext parameters: {count_trainable_parameters(model):,}")
 print(f'Test Loss: {test_loss:.3f} | Test Acc @1: {test_acc_1*100:6.2f}% | ' \
       f'Test Acc @5: {test_acc_5*100:6.2f}%')

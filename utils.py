@@ -263,3 +263,33 @@ def count_trainable_parameters(model):
     return trainable_params
 
 
+def evaluate_baseline(model, iterator, criterion, device):
+
+    epoch_loss = 0
+    epoch_acc_1 = 0
+    epoch_acc_5 = 0
+
+    model.eval()
+
+    with torch.no_grad():
+
+        for (x, y) in iterator:
+
+            x = x.to(device)
+            y = y.to(device)
+
+            y_pred = model(x)
+
+            loss = criterion(y_pred, y)
+
+            acc_1, acc_5 = calculate_topk_accuracy(y_pred, y)
+
+            epoch_loss += loss.item()
+            epoch_acc_1 += acc_1.item()
+            epoch_acc_5 += acc_5.item()
+
+    epoch_loss /= len(iterator)
+    epoch_acc_1 /= len(iterator)
+    epoch_acc_5 /= len(iterator)
+
+    return epoch_loss, epoch_acc_1, epoch_acc_5
